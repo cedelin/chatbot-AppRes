@@ -1,64 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>AI Chatbot | Application Resiliency LAB</title>
-	<link rel="stylesheet" href="styles.css">
-	<head>
-		<body>
-			<d class="chatbot.popup">
-			<!--Chatbot Header-->
-				<div class="chatbot-header">
-					<div class="chat-info">
-						<img src="/img/AI_Inteligencia Artificial_3Masa.svg" 
-						alt="AI Icon" class="ai-icon" width="50" height="50">
-						<h2 class="chatbot-title">TTechie</h2>
-					</div>
-					<button class="mi-boton">
-						<img src="/img/arrow-line-down_2Regular.svg" 
-						alt="Flecha hacia abajo" width="20" height="20">
-					  </button>
-				<!--Cuerpo del Chat-->
-					<div class="chat-body">
-						<div class="bot-chat-message">
-							<img src="/img/AI_Inteligencia Artificial_3Masa.svg" 
-							alt="AI Icon" class="ai-icon" width="50" height="50">	
-							<p class="message-text">¡Hola! Soy TTechie 👋, tu 
-								telefónico virtual. ¿En qué puedo ayudarte hoy?</p>
-						</div>
-						<div class="user-chat-message">	
-							<p class="message-text">Lorem ipsum dolor sit amet 
-								consectetur adipisicing elit. Facilis eaque harum 
-								repudiandae, nihil eveniet nostrum? Ea nemo 
-								officiis eius perferendis autem amet dolor 
-								pariatur blanditiis ipsa illum, inventore nisi quis!</p>
-						</div>
-					</div>
+	<link rel="stylesheet" href="style.css">
+</head>
 
-					<!--Cuerpo del Chat-->
-				<div class="chatbot-footer">
-					<action="#" class="chat-form">
-						<textarea placeholder="Message.." class="message-input">
-						</textarea>
-					<div class="chat-bottom">
-						<button class="feel-button">
-							<img src="/img/Me gusta_2Regular.svg" 
-							alt="Send Icon" width="20" height="20">
-						</button>
-						<button class="attach-button">
-							<img src="/img/Adjuntar_2Regular.svg" 
-							alt="Send Icon" width="20" height="20">
-						</button>
-						<button class="arrow-button">
-							<img src="/img/arrow-line-up_2Regular.svg" 
-							alt="Send Icon" width="20" height="20">
-						</button>
-					</div>
-					<p>&copy; 2025 Application Resiliency LAB</p>
+<body>
+	<div class="chatbot popup">
+		<!--Chatbot Header-->
+		<div class="chatbot-header">
+			<div class="chat-info">
+				<img src="/img/AI_Inteligencia Artificial_3Masa.svg" alt="AI Icon" 
+				class="ai-icon" width="50" height="50">
+				<h2 class="chatbot-title">TTechie</h2>
+			</div>
+			<button class="close-button">
+				<img src="/img/chevron-down_1Light.svg" alt="Flecha hacia abajo" 
+				class="flecha-icon" width="20" height="20">
+			</button>
+		</div>
+
+		<!--Cuerpo del Chat-->
+		<div class="chat-body">
+			<div class="message bot-message">
+				<img src="/img/AI_Inteligencia Artificial_3Masa.svg" alt="AI Icon" 
+				class="ai-icon-chat" width="50" height="50">
+				<p class="message-text">¡Hola! Soy TTechie 👋, tu telefónico virtual. 
+					¿En qué puedo ayudarte hoy?</p>
+			</div>
+			<div class="message user-message">
+				<p class="message-text">
+					Lorem ipsum dolor sit amet consectetur adipisicing elit. Facilis 
+					eaque harum repudiandae, nihil eveniet nostrum?
+					Ea nemo officiis eius perferendis autem amet dolor pariatur 
+					blanditiis ipsa illum, inventore nisi quis!
+				</p>
+			</div>
+		</div>
+
+		<!--Footer del Chat-->
+		<div class="chatbot-footer">
+			<form action="#" class="chat-form">
+				<textarea placeholder="Message..." class="message-input"></textarea>
+				<div class="chat-bottom">
+					<button class="feel-button">
+						<img src="/img/Me gusta_2Regular.svg" alt="Like Icon" width="20" height="20">
+					</button>
+					<button class="attach-button">
+						<img src="/img/Adjuntar_2Regular.svg" alt="Attach Icon" width="20" height="20">
+					</button>
+					<button class="arrow-button">
+						<img src="/img/arrow-line-up_2Regular.svg" alt="Send Icon" width="20" height="20">
+					</button>
 				</div>
-			</di>
-		</body>
-	</head>
+			</form>
+			<p>&copy; 2025 Application Resiliency LAB</p>
+		</div>
+	</div>
+</body>
+
 </html>
