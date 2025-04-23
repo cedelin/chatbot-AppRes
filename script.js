@@ -1,90 +1,132 @@
-const chatBody = document.querySelector(".chat-body");
+// == Configuración ==
+const WORKSPACE_SLUG = "lab-ot";   // tu workspace slug en minúsculas
+const THREAD_ID      = "559977e2-f5dd-406a-b272-b32a537cd7d3"; // tu thread real
+const API_URL = `http://localhost:3001/api/v1/workspace/${WORKSPACE_SLUG}/thread/${THREAD_ID}/stream-chat`;
+
+const chatBody     = document.querySelector(".chat-body");
 const messageInput = document.querySelector(".message-input");
-const senderButton = document.querySelector("#send-message");
+const sendBtn      = document.querySelector("#send-message");
 
-const API_KEY = "AIzaSyB0LgjwFpqzs7ga3gtPrzo7KojW9HgAGKE";
-const API_URL = "http://localhost:11434/api/chat"
+// Almacena el último mensaje del usuario
+const userData = { message: null };
 
-const userData = {
-    message: null
+// Crea la burbuja de mensaje
+function createMessageElement(content, ...classes) {
+  const div = document.createElement("div");
+  div.classList.add("message", ...classes);
+  div.innerHTML = content;
+  return div;
 }
 
-const createMessageElement = (content, ...classes) => {
-    const div = document.createElement("div");
-    div.classList.add("message", ...classes);
-    div.innerHTML = content;
-    return div;
-}
-
-const generateBotResponse = async (incomingMessageDiv) => {
+// Lee el stream token a token y lo va mostrando
+async function generateBotResponse(incomingMessageDiv) {
     const messageElement = incomingMessageDiv.querySelector(".message-text");
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            model: "llama3.2",
-            messages: [
-                {
-                    role: "user",
-                    content: userData.message
-                }
-            ],
-            stream: false
-        })
+  
+    // 1) Petición al endpoint de stream
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Accept": "text/event-stream",
+        "Content-Type": "application/json",
+        "Authorization": "Bearer EKT4CY0-81RMKTF-M16BTTR-9PC8JDD"
+      },
+      body: JSON.stringify({
+        message:   userData.message,
+      mode:      "query",          // o "chat" si no quieres RAG
+      reset:     false
+      })
+    });
+  
+    // 2) Manejo de error HTTP
+    if (!res.ok) {
+      let errText;
+      try {
+        errText = (await res.json()).error;
+      } catch {
+        errText = res.statusText;
+      }
+      messageElement.textContent = `❗ ${errText}`;
+      incomingMessageDiv.classList.remove("thinking");
+      return;
     }
-    try {
-        const response = await fetch(API_URL, requestOptions);
-        const data = await response.json();
-        if(!response.ok) throw new Error(data.error.message);
-        // Extract and display the bot's response
-        const botContent = data.message && data.message.content ? data.message.content : "Sin respuesta";
-        messageElement.innerHTML = botContent;
-        const cleanContent = botContent
-        botContent.replace(/\*\*(.*?)\*\*/g, '$1') // elimina negritas **texto**
-        botContent.replace(/`{1,3}([^`]*)`{1,3}/g, '$1') // elimina bloques de código `texto`
-        botContent.replace(/<\/?[^>]+(>|$)/g, ""); // elimina etiquetas HTML si quedan
-
-        }catch (error) {
-        console.log(error);
-        }finally {
-        incomingMessageDiv.classList.remove("thinking");
-        chatBody.scrollTo( {top: chatBody.scrollHeight, behavior: "smooth"});
+  
+    // 3) Leer el cuerpo como stream
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+  
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+  
+      buffer += decoder.decode(value, { stream: true });
+  
+      // 4) Procesar línea a línea
+      const lines = buffer.split("\n");
+      // Mantén en buffer la última línea incompleta
+      buffer = lines.pop();
+  
+      for (const line of lines) {
+        if (!line.startsWith("data:")) continue;
+        const jsonStr = line.replace("data:", "").trim();
+        if (!jsonStr) continue;
+  
+        try {
+          const parsed = JSON.parse(jsonStr);
+          // 5) Mostrar sólo el textResponse
+          if (parsed.textResponse) {
+            messageElement.textContent += parsed.textResponse;
+          }
+        } catch (err) {
+          console.error("Error parsing SSE chunk:", err);
         }
-}
-
-const handleOutgoingMessage = (e) => {
-    e.preventDefault();
-    userData.message = messageInput.value.trim();
-    messageInput.value = "";
-    const messageContent = `<div class="message-text">${userData.message}</div>`;
-    const outgoingMessageDiv = createMessageElement(messageContent, "user-message");
-    outgoingMessageDiv.querySelector(".message-text").textContent = userData.message;
-    chatBody.appendChild(outgoingMessageDiv);
-    chatBody.scrollTo( {top: chatBody.scrollHeight, behavior: "smooth"});
-
-    setTimeout(() => {
-        const messageContent = `<img src="/img/AI_Inteligencia Artificial_3Masa.svg" alt="AI Icon" 
-				class="ai-icon-chat" width="50" height="50">
-				<div class="message-text">
-					<div class="thinking-indicator">
-						<div class="dot"></div>
-						<div class="dot"></div>
-						<div class="dot"></div>
-					</div>
-				</div>`;
-        const incomingMessageDiv = createMessageElement(messageContent, "bot-message", "thinking");
-        chatBody.appendChild(incomingMessageDiv);
-        chatBody.scrollTo( {top: chatBody.scrollHeight, behavior: "smooth"});
-        generateBotResponse(incomingMessageDiv);
-    }, 600);
-}
-messageInput.addEventListener ("keydown", (e) => {
-    const userMessage = e.target.value.trim();
-    if(e.key === "Enter" && userMessage) {
-        handleOutgoingMessage(e);
+      }
     }
-});
+  
+    incomingMessageDiv.classList.remove("thinking");
+    // Actualiza en la burbuja
+    chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
+}
 
-senderButton.addEventListener("click", (e) => handleOutgoingMessage(e));
+// Manejador al pulsar enviar
+function handleOutgoingMessage(e) {
+  e.preventDefault();
+  const text = messageInput.value.trim();
+  if (!text) return;
+
+  userData.message = text;
+  messageInput.value = "";
+
+  // Burbuja del usuario
+  const userDiv = createMessageElement(
+    `<div class="message-text">${text}</div>`,
+    "user-message"
+  );
+  chatBody.appendChild(userDiv);
+  chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
+
+  // Burbuja vacía del bot con indicador de "pensando"
+  setTimeout(() => {
+    const botDiv = createMessageElement(
+      `<img src="/img/AI_Inteligencia Artificial_3Masa.svg" class="ai-icon-chat" width="35" height="35">
+       <div class="message-text">
+         <span class="thinking-indicator">
+           <span class="dot"></span>
+           <span class="dot"></span>
+           <span class="dot"></span>
+         </span>
+       </div>`,
+      "bot-message", "thinking"
+    );
+    chatBody.appendChild(botDiv);
+    chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
+
+    generateBotResponse(botDiv);
+  }, 200);
+}
+
+// Eventos
+messageInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") handleOutgoingMessage(e);
+});
+sendBtn.addEventListener("click", handleOutgoingMessage);
